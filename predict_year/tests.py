@@ -1,12 +1,11 @@
 from django.test import TestCase, Client
-from rest_framework.test import APIRequestFactory
 
 from views import parse_data
 
 
 class SimpleTest(TestCase):
     def setUp(self):
-        self.factory = APIRequestFactory(enforce_csrf_checks=True)
+        self.payload = """Don't turn your eyes away And please say that you will stay A while"""
 
     # def test_post(self):
     #     view = parse_data
@@ -17,5 +16,5 @@ class SimpleTest(TestCase):
 
     def test_post_request_resolves_to_results(self):
         c = Client()
-        response = c.post('/predict/',{'payload': 'test string that represents a song'})
+        response = c.post('/predict/',{'payload': self.payload})
         self.assertEqual(response.status_code, 200) 

@@ -11,12 +11,10 @@ from predict import parse_data_predict
 
 @api_view(['POST'])
 def parse_data(request):
-    """ As a request comes from the home page via POST, parse the canvas
-    image, downsize it to match the dims of the training data, and then
-    pass it to the pre-trained neural network for it make a prediction.
-    The results of the prediction (value and confidence), as well as the
-    array representations of the images themselves are stored in the
-    model, and hence the PostgresQL database.
+    """ Request comes into API via POST, song lyrics in a 'payload' object, 
+        take lyrics and transform them into number counts, tfidf scores, and pass
+        to NB model. Write prediction to lyrics object's year attribute and return 
+        year prediction  
     """
 
     try:
@@ -28,8 +26,8 @@ def parse_data(request):
 
         # grabs most recently created object so you can access values 
         obj = Song_BOW.objects.all().order_by('-id')[0]
-        print(obj.bow)
-        print(obj.year)
+        # print(obj.bow)
+        # print(obj.year)
 
         # turns object into python dict so you can access it 
         serializer = BOWSerializer(obj)
