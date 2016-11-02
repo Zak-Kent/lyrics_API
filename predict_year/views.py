@@ -27,14 +27,15 @@ def parse_data(request):
         # grabs most recently created object so you can access values 
         obj = Song_BOW.objects.all().order_by('-id')[0]
         # print(obj.bow)
-        # print(obj.year)
+        # prin)t(obj.year)
 
         # turns object into python dict so you can access it 
         serializer = BOWSerializer(obj)
         print(serializer.data)
-        return HttpResponse(serializer.data)
+        return HttpResponse()
 
-    except:
+    except Exception:
+        print(Exception)
         # logger.exception('New way')
         # return render(request, 'home.html')
 

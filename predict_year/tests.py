@@ -5,7 +5,7 @@ from views import parse_data
 
 class SimpleTest(TestCase):
     def setUp(self):
-        self.payload = """Don't turn your eyes away And please say that you will stay A while"""
+        self.payload = """Don't turn turn your eyes away And please say that you will stay A while"""
 
     # def test_post(self):
     #     view = parse_data
