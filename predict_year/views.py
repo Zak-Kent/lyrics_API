@@ -2,7 +2,9 @@ from django.shortcuts import render
 
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+
+from rest_framework.exceptions import ParseError
 
 from rest_framework.renderers import JSONRenderer
 
@@ -20,36 +22,39 @@ def parse_data(request):
         year prediction  
     """
 
-    # try:
-    info = request.body
-    print("inside view: {}".format(info))
-    # info = request.POST.get('payload', 'no info')
-    # print("data inside post request: {}".format(info))
+    song_lyrics = request.body
 
-    # calls parse data func to create obj with text
-    parse_data_predict(info)
+    # Check request body to make sure it's 4 words or longer 
+    text_list = song_lyrics.split()
+    if len(text_list) < 4:
+        detail = "your request body must be longer than three words"
+        raise ParseError(detail=detail, code=400) 
 
-    # grabs most recently created object so you can access values 
+    # check to make sure body doesn't contain numbers 
+    int_in_text = [word.isdigit() for word in text_list]
+    for item in int_in_text: 
+        if item: 
+            detail = "your request must not contain numbers"
+            print(detail)
+            raise ParseError(detail=detail, code=400) 
+
+    # send data to predict.py for stemming, dict conversion, and prediction
+    parse_data_predict(song_lyrics)
+
+    # grabs most recently created object from DB so you can access prediction 
     obj = Song_BOW.objects.all().order_by('-id')[0]
-    # print(obj.bow)
-    # prin)t(obj.year)
 
     # turns object into python dict so you can access it 
     serializer = BOWSerializer(obj)
-    print('I dond know')
     print(serializer.data)
 
     json = JSONRenderer().render(serializer.data)
 
     return HttpResponse(json)
 
-    # except Exception:
+    # except:
     #     print(Exception)
-    #     # logger.exception('New way')
-    #     # return render(request, 'home.html')
-
-    #     print('failed in parse_data view')
-    #     return HttpResponse("fail in http response")
+    #     raise Http404("failure in processing your string")
 
 
 
