@@ -1,11 +1,12 @@
 from django.test import TestCase, Client
 
 from views import parse_data
+import json
 
 
 class SimpleTest(TestCase):
     def setUp(self):
-        self.payload = """Don't turn turn your eyes away And please say that you will stay A while"""
+        self.payload = "want thought was to turn turn  on on "
 
     # def test_post(self):
     #     view = parse_data
@@ -16,5 +17,5 @@ class SimpleTest(TestCase):
 
     def test_post_request_resolves_to_results(self):
         c = Client()
-        response = c.post('/predict/',{'payload': self.payload})
+        response = c.post('/predict/',self.payload, 'application/json')
         self.assertEqual(response.status_code, 200) 

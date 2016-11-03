@@ -11,7 +11,7 @@ from data_loader import dict_test
 from dict_pickle import convert_dict
 
 # imports stemming script used on all lyrics in model 
-from lyrics_data.word_stemmer import lyrics_to_bow
+from word_stemmer import lyrics_to_bow
 
 # need to import dict of words 
 # also need to include trained NB model and tfidf model here 
@@ -95,7 +95,8 @@ def parse_data_predict(data):
     print(confidence_score[0])
 
     print(confidence_score[0].max())
-    print(confidence_score[0][year])
+    # subrtacting 1 beacuse predictions are 1 indexed
+    print(confidence_score[0][year - 1])
     # load_models()
 
     Song_BOW.objects.create(
