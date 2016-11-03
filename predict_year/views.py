@@ -1,39 +1,42 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 
 from rest_framework.decorators import api_view
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse, Http404
-
 from rest_framework.exceptions import ParseError
-
 from rest_framework.renderers import JSONRenderer
+# from django.views.decorators.csrf import csrf_exempt
 
 from models import Song_BOW
 from predict_year.serializers import BOWSerializer
-
 from predict import parse_data_predict
 
-@csrf_exempt
+# @csrf_exempt
 @api_view(['POST'])
-def parse_data(request):
-    """ Request comes into API via POST, song lyrics in a 'payload' object, 
-        take lyrics and transform them into number counts, tfidf scores, and pass
-        to NB model. Write prediction to lyrics object's year attribute and return 
-        year prediction  
+def lyrics_prediction(request):
+    """ 
+        Send request to API using POST with a string in the body of the request. 
+        This string must be longer than three words and must not contain any digits. 
+        After receiving the POST request the API will parse the lyrics and run a Naive Bayes 
+        prediction model in an attempt to predict which the decade the song lyrics are from. 
+
+        Example: 
+        post('/predict/',song_lyrics_text, 'application/json') 
+        reponse 200: {predicted_decade: '90s', prob_of_decade: '0.273208'}
+
+        The probability percentage is out of the seven decades that are available as choices. 
     """
 
     song_lyrics = request.body
 
-    # Check request body to make sure it's 4 words or longer 
+    # Check request body to make sure it's at least 4 words or longer 
     text_list = song_lyrics.split()
     if len(text_list) < 4:
         detail = "your request body must be longer than three words"
         raise ParseError(detail=detail, code=400) 
 
     # check to make sure body doesn't contain numbers 
-    int_in_text = [word.isdigit() for word in text_list]
-    for item in int_in_text: 
-        if item: 
+    for word in text_list: 
+        if word.isdigit(): 
             detail = "your request must not contain numbers"
             print(detail)
             raise ParseError(detail=detail, code=400) 
@@ -46,15 +49,21 @@ def parse_data(request):
 
     # turns object into python dict so you can access it 
     serializer = BOWSerializer(obj)
-    print(serializer.data)
 
-    json = JSONRenderer().render(serializer.data)
+    prediction = (serializer['year'].value) * 10
+    confidence = serializer['confidence'].value
+
+    # setting up object that is returned to user 
+    response = {
+                "predicted_decade": str(prediction)+'s',
+                "prob_of_decade": confidence
+                }
+                
+
+    json = JSONRenderer().render(response)
 
     return HttpResponse(json)
 
-    # except:
-    #     print(Exception)
-    #     raise Http404("failure in processing your string")
 
 
 

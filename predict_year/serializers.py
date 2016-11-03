@@ -6,4 +6,4 @@ class BOWSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Song_BOW
-        fields = ('bow', 'year', 'confidence')
+        fields = ('bow', 'year', 'confidence', 'prob_decades')

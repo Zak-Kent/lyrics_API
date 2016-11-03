@@ -8,4 +8,6 @@ class Song_BOW(models.Model):
     bow = models.TextField(blank=True)
     year = models.IntegerField(default=None)
     confidence = models.FloatField(blank=True)
+    prob_decades = models.TextField(blank=True)
+
 

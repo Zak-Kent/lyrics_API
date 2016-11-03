@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 
-from views import parse_data
+from views import lyrics_prediction
 import json
 
 
@@ -8,7 +8,7 @@ class SimpleTest(TestCase):
     def setUp(self):
         self.c = Client()
 
-        self.good_payload = "want thought was to turn turn on on"
+        self.good_payload = "want thought was to on on over over"
         self.digit_payload = "6647 3746 888 78 90"
         self.short_payload = "only three words"
         
@@ -23,11 +23,6 @@ class SimpleTest(TestCase):
         response = self.request_helper(self.good_payload)
         output = json.loads(response.content)
         self.assertTrue(type(output) != None)
-
-    def test_good_payload_returns_prediction(self):
-        response = self.request_helper(self.good_payload)
-        output = json.loads(response.content)
-        self.assertEqual(output['year'], 6)
 
     def test_payload_with_digits_returns_error(self):
         response = self.request_helper(self.digit_payload)

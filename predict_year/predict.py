@@ -1,111 +1,58 @@
-from models import Song_BOW
-
 import gensim
 import pickle
-
 from sklearn.externals import joblib
-from scipy.sparse import lil_matrix
 
 # need to import a hard coded dict object because django can't use a pickled obj during testing
-from data_loader import dict_test
-from dict_pickle import convert_dict
+from lyrics_helper_funcs import convert_dict, matrix_func
 
 # imports stemming script used on all lyrics in model 
 from word_stemmer import lyrics_to_bow
-
-# need to import dict of words 
-# also need to include trained NB model and tfidf model here 
-
-# ******* really just need to build a class that takes a paragraph and breaks it down to word 
-# counts in the format we need 
-
-def matrix_func(a_list):
-    """take a list of dicts and return a sparse lil_matrix"""
-    # make a matrix that matches the size of list of dicts 
-    sparse_matrix = lil_matrix((len(a_list), 5000))
-
-    # loop through each dict in list, and add that dicts values to idx of key in sparse matrix 
-    for idx, a_dict in enumerate(a_list):
-
-        for key in a_dict.keys(): 
-            # subtracting 1 from the key because values in dict start at 1 
-            sparse_matrix[idx, key - 1] = a_dict[key]
-    
-    return sparse_matrix
+from models import Song_BOW
 
 
 def parse_data_predict(data):
     parsed_data = lyrics_to_bow(data)
-    print(type(parsed_data))
-    print(parsed_data)
-
-    # try: 
-    #     dicty = pickle.load('save_dict.p', 'rb')
-    # except:
-    #     print('exception on loading pickle')
-    #     # during testing django can't load pickle files so you have to load hard coded dict
-    #     dicty = dict_test()
-
-    # # breaks words into a dict where keys map to the word's # in lookup dict 
-    # # ex. 23: 2 --> the 23rd word in the lookup dict was seen in the song 2 times 
-    # new_dict = {}
-    # for word in parsed_data.keys():
-    #     try:
-    #         new_dict[dicty[word]] = parsed_data[word]
-    #     except:
-    #         print('word not in dictionary, skipped')
-            
-
-    # new_new = new_dict
-    # print(type(new_new))
-    # print(new_new)
-    print('3' * 50)
     
+    # converts parsed_data dict to a dict with numeric key values that match training             
     new_test = convert_dict(parsed_data)
-    print(new_test)
 
-    # ----------------------------------------------------------------
-    # get tfidf for word counts 
-
-    tfidf = gensim.models.TfidfModel.load("full_tfidf_model.tfidf")
-
-    
+    # turn dict into a dict of word_keys: tfidf_scores 
+    tfidf = gensim.models.TfidfModel.load("pickles/full_tfidf_model.tfidf")
     song_tfidf = tfidf[new_test.items()]
-    print(song_tfidf)
 
     tfidf_dict = {}
     for key, value in song_tfidf:
         tfidf_dict[key] = value
 
-    print(tfidf_dict)
-
+    # create a lil_matrix out of tfidf_dict so it can be made dense during training 
     dense = matrix_func([tfidf_dict])
-    # ----------------------------------------------------------------
-    # load model and get year prediciton and confidence score 
-
-    clf = joblib.load('NB_pickle.pkl')
-
-    year = clf.predict(dense[0].toarray())
-    # gets probability of class 
-    confidence_score = clf.predict_proba(dense[0].toarray())
     
-    print("5" * 50)
-    print(year)
+    # load model and get year prediciton and probability score 
+    with open('pickles/NB_pickles.pkl', 'rb') as fo:
+        clf = joblib.load(fo)
+ 
+    prediction = clf.predict(dense[0].toarray())
 
-    print(confidence_score[0])
+    # need to add 5 because 50's are zero index in model
+    year = prediction[0] + 5 
 
-    print(confidence_score[0].max())
-    # subrtacting 1 beacuse predictions are 1 indexed
-    print(confidence_score[0][year - 1])
-    # load_models()
+    # gets probability scores for each decade 
+    decade_probabilities = clf.predict_proba(dense[0].toarray())
+
+    # creating a dict of the prob of each decade. Adding 5 because 50s zero index 
+    probability_scores = [((idx+5), score) for idx, score in enumerate(decade_probabilities[0])]
+
+    prob_dict = {}
+    for item in probability_scores:
+        prob_dict[str(item[0])] = str(item[1])
 
     Song_BOW.objects.create(
                             bow=tfidf_dict,
                             year=year,
-                            confidence=confidence_score[0].max())
+                            confidence=decade_probabilities[0][prediction], 
+                            prob_decades=prob_dict
+                            )
 
-
-# parse_data_predict("Don't turn turn your eyes away And please say that you will stay A while")
 
 
 
