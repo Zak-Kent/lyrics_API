@@ -2,8 +2,7 @@ import gensim
 import pickle
 from sklearn.externals import joblib
 
-# need to import a hard coded dict object because django can't use a pickled obj during testing
-from lyrics_helper_funcs import convert_dict, matrix_func
+from lyrics_helper_funcs import convert_dict, matrix_func, load_tfidf_model, load_NB_model
 
 # imports stemming script used on all lyrics in model 
 from word_stemmer import lyrics_to_bow
@@ -17,7 +16,10 @@ def parse_data_predict(data):
     new_test = convert_dict(parsed_data)
 
     # turn dict into a dict of word_keys: tfidf_scores 
-    tfidf = gensim.models.TfidfModel.load("pickles/full_tfidf_model.tfidf")
+    # tfidf = gensim.models.TfidfModel.load("pickles/full_tfidf_model.tfidf")
+
+    tfidf = load_tfidf_model()
+
     song_tfidf = tfidf[new_test.items()]
 
     tfidf_dict = {}
@@ -28,9 +30,11 @@ def parse_data_predict(data):
     dense = matrix_func([tfidf_dict])
     
     # load model and get year prediciton and probability score 
-    with open('pickles/NB_pickles.pkl', 'rb') as fo:
-        clf = joblib.load(fo)
- 
+    # with open('pickles/NB_pickles.pkl', 'rb') as fo:
+    #     clf = joblib.load(fo)
+    
+    clf = load_NB_model()
+    
     prediction = clf.predict(dense[0].toarray())
 
     # need to add 5 because 50's are zero index in model
