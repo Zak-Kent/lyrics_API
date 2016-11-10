@@ -6,7 +6,7 @@ from word_stemmer import lyrics_to_bow
 
 def stemming_dict(data):
     stemmed_data = lyrics_to_bow(data)
-    return stemmed_data
+    return stemmed_data if stemmed_data is not None else {}
 
 def dict_number_keys(a_dict):
     """map BOW dict keys to number values of words in corpus"""
