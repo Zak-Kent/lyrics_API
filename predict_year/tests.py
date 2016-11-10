@@ -11,6 +11,7 @@ class SimpleTest(TestCase):
         self.good_payload = "want thought was to on on over over"
         self.digit_payload = "6647 3746 888 78 90"
         self.short_payload = "only three words"
+        self.hat_payload = "hat hat hat hat"
         
     def request_helper(self, payload):
         return self.c.post('/predict/',payload, 'application/json')
@@ -31,6 +32,11 @@ class SimpleTest(TestCase):
     def test_short_payload_returns_error(self):
         response = self.request_helper(self.short_payload)
         self.assertEqual(response.status_code, 400)
+
+    def test_hat_returns_400(self):
+        response = self.request_helper(self.hat_payload)
+        self.assertEqual(response.status_code, 400)
+
 
 
         
