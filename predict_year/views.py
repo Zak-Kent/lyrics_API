@@ -41,12 +41,18 @@ def lyrics_prediction(request):
 
     # stem song lyrics and return dict with word counts
     stemmed_data = predict_helper.stemming_dict(song_lyrics)
+    print(stemmed_data)
 
     # convert stemmed_data to a dict where keys are nums that map to words in corpus
     num_dict = predict_helper.dict_number_keys(stemmed_data)
+    if not num_dict: 
+        return Response('No words entered are valid', status=status.HTTP_400_BAD_REQUEST)
+
+    print(num_dict)
 
     # convert num dict values to their tfidf scores
     tfidf_dict = predict_helper.tfidf_dict(num_dict)
+    print(tfidf_dict)
 
     # convert tfidf_dict to lil_matrix so it can be made dense during prediction
     a_matrix = predict_helper.make_lil_matrix(tfidf_dict)
@@ -64,11 +70,17 @@ def lyrics_prediction(request):
 
     confidence = song_obj['confidence']
 
+    prob_decades = song_obj['prob_decades']
+    print(prob_decades)
+
     # set up object that is returned to user
     response = {
                 "predicted_decade": str(prediction)+'s',
-                "prob_of_decade": confidence
+                "prob_of_decade": confidence,
+                "prob_of_all_decades": prob_decades
                 }
+
+    
 
     json = JSONRenderer().render(response)
 
