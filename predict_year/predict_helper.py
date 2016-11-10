@@ -10,7 +10,7 @@ def stemming_dict(data):
 
 def dict_number_keys(a_dict):
     """map BOW dict keys to number values of words in corpus"""
-    with open('pickles/save_dict.p', 'rb') as f:
+    with open('pickles/decade_mxm/save_dict.p', 'rb') as f:
         dicty = pickle.load(f)
         new_dict = {}
         for word in a_dict.keys():
@@ -23,7 +23,7 @@ def dict_number_keys(a_dict):
 
 def tfidf_dict(num_dict):
     """turn dict into a dict of word_keys: tfidf_scores"""
-    tfidf = gensim.models.TfidfModel.load("pickles/full_tfidf_model.tfidf")
+    tfidf = gensim.models.TfidfModel.load("pickles/decade_mxm/full_tfidf_model.tfidf")
     song_tfidf = tfidf[num_dict.items()]
 
     tfidf_dict = {}
@@ -50,7 +50,7 @@ def make_lil_matrix(tfidf_dict):
 def predict_decade(a_matrix):
     """load model and get year prediciton and probability score"""
 
-    with open('pickles/NB_pickles.pkl', 'rb') as fo:
+    with open('pickles/decade_mxm/NB_pickles.pkl', 'rb') as fo:
         clf = joblib.load(fo)
 
     prediction = clf.predict(a_matrix[0].toarray())
